@@ -1,0 +1,873 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head>
+
+<body><!-- Order confirmation print -->
+    <style>
+        /*
+ * Copyright (c) 2017 Tracelink ApS - www.tracelink.dk - info@tracelink.dk
+ * -----------------------------------------------------------------------
+ *
+ * File-created: "2017-11-22 22:43:25 by cbn"
+ * Time-stamp:   "2019-05-28 11:15:36 by cbn"
+ * 
+ */
+        @import url("https://tracelink.dk/admin/font/fontello.css");
+
+        body {
+            font-family: helvetica, arial, sans-serif;
+            height: initial;
+        }
+
+
+        .page-break {
+            display: block;
+            page-break-before: always;
+        }
+
+        .tab_content>p {
+            margin: 12px 0;
+        }
+
+        .tab_content>p>span {
+            margin: 4px 0;
+            display: inline-block;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0px 0;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        td,
+        th {
+            padding: 2px 0;
+            text-align: left;
+        }
+
+        /* td { */
+        /* 	overflow: hidden; */
+        /* 	white-space: nowrap; */
+        /* 	text-overflow: ellipsis; */
+        /* } */
+
+        td,
+        .value {
+            font-weight: normal;
+            vertical-align: top;
+        }
+
+        table.qr_info,
+        table.qr_info tr,
+        table.qr_info td {
+            border: 1px solid black;
+            font-size: 110%;
+            padding: 15px;
+            line-height: initial;
+            vertical-align: top;
+            text-overflow: initial;
+            border-collapse: collapse;
+            white-space: normal;
+            width: 99%;
+        }
+
+        hr {
+            border-bottom: 1px solid #999;
+            margin: 10px 0;
+        }
+
+        /* .value {
+    } */
+
+        .rows tr:nth-child(even) {
+            background-color: #f4f3f1;
+        }
+
+        .rows th {
+            border-bottom: 1px solid #999;
+        }
+
+        th {
+            font-weight: bold;
+        }
+
+        img {
+            margin: 0 8px;
+            max-width: 800px;
+        }
+
+        button#_print {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        @media only screen {
+            html {
+                background: lightgray;
+            }
+
+            body {
+                background: white;
+                border: gray 1px solid;
+                /* padding: 14px; */
+                padding: 12.5mm;
+                white-space: normal;
+                word-break: break-word;
+                margin: 7px auto;
+                max-width: 210mm;
+                min-height: 297mm;
+            }
+
+            button#_print {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                padding: 4px 15px;
+                background: #00d78c;
+                color: #233959;
+                font-family: MuseoSans, open_sans, helvetica, arial, sans-serif;
+                border: 0;
+                font-size: 12px;
+                line-height: 24px;
+                display: block !important;
+                visibility: visible !important;
+            }
+
+            .footer {
+                width: calc(210mm + ((12.5mm + 7px)*2)) !important;
+                left: 50%;
+                margin: 0;
+                margin-bottom: 7px;
+                padding: 0;
+                transform: translate(calc(-50% + 6px), 0);
+            }
+
+            [contenteditable=true]:before {
+                font-family: "fontello";
+                color: #c6c6c4;
+                content: "\270e";
+            }
+        }
+    </style>
+    <style>
+        .sum_placement {
+            position: fixed;
+            bottom: 0;
+        }
+
+        .container {
+            width: 100%;
+            font-size: 12px;
+        }
+
+        #no_space {
+            border-spacing: 0 0;
+        }
+
+        .border-bottom {
+            border-bottom: 2px solid gray;
+        }
+
+        #lines th {
+            border-top: 2px solid gray;
+            border-bottom: 2px solid gray;
+            padding: 4px 4px 4px 4px;
+            font-size: 12px;
+        }
+
+        #lines td {
+            padding: 4px 4px 4px 4px;
+        }
+
+        #tot td {
+            font-weight: bold;
+        }
+
+        table.right_with_dotted_lines tr td.has_ellipsis_after {
+            white-space: nowrap;
+            /* If you want the cells to resize depending on the content, then you must not specify a width to the table, the rows, or the cells.
+                                
+                                 If you don't want word wrap, assign the CSS style white-space: nowrap to the cells. */
+
+
+        }
+
+        table.right_with_dotted_lines tr td.has_ellipsis_before {
+            position: relative;
+            /* left: 100%; */
+            white-space: nowrap;
+            padding-left: 2px;
+        }
+
+        hr.the_dotted_per_se {
+            border-bottom: dotted 1px black;
+            border-top: none;
+            border-right: none;
+            border-left: none;
+            width: 100%;
+            display: inline;
+            height: 10px;
+            float: right;
+            margin: 0 0px 0px 0px;
+            line-height: 20px;
+            margin-bottom: 0px;
+
+        }
+
+
+        table.right_with_dotted_lines {
+            position: relative;
+            /* left: 100%; */
+        }
+
+        .line_before_end {
+
+            position: absolute;
+            top: 400px;
+
+            left: 15px;
+            /* margin option for cutting the element*/
+            height: 2px;
+            border-width: 0;
+            color: gray;
+            background-color: gray;
+        }
+    </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <table>
+        <tbody>
+            <tr>
+                <td>
+                    <div class="content">
+
+                        <table class="container">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td><b>
+
+                                                            Aben gik en tur
+
+                                                        </b></td>
+                                                </tr>
+
+                                                <!-- Kundens addresse, først vej, postnr, by, land -->
+
+
+                                                <tr>
+                                                    <td>
+
+                                                        ww
+
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+
+
+
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+
+
+
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>CVR-Nr.
+                                                    </td>
+                                                </tr>
+
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <i>
+
+                                                            Leveringsadresse:
+
+                                                        </i>
+                                                    </td>
+                                                </tr>
+                                                <!-- Prioriteten af adressen er følgende:
+                                                                        1. Leveringsadressen valgt på ordren.
+                                                                        2. Den indstastede i econ ordren ved konvertering.
+                                                                        3. Kundens adresse
+                                                                
+                                                                        -->
+
+
+
+                                                <tr>
+                                                    <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                </tr>
+
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table>
+
+                                            <tbody>
+                                                <tr>
+                                                    <td>&nbsp;</td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td>
+
+
+                                                        Lev. dato: 23.02.2024
+
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br>
+
+                        <table class="container" style="min-height:120px;">
+                            <tbody>
+                                <tr>
+                                    <td style="width:63%" class="border-bottom"> </td>
+                                    <td style="width:2%"> </td>
+                                    <td style="font-size:24px;width:35%" class="border-bottom">
+
+                                        <b>ORDREBEKRÆFTELSE</b>
+
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:63%"></td>
+                                    <td style="width:2%"></td>
+                                    <td style="width:35%;line-height:5px;">&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <td style="width:63%">
+                                        <table class="lines_on_the_left" style="padding: 0px 20px 0px 10px">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <b>test</b><br>
+                                                        <!--  -->
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                    <td style="width:2%">
+                                    </td>
+                                    <td style="width:35%">
+                                        <table style="font-size:12px" class="right_with_dotted_lines">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="has_ellipsis_after" id="tot">
+                                                        <hr class="the_dotted_per_se"><span
+                                                            style="background:white;padding-right:4px;">
+
+                                                            Ordre nr.
+
+                                                        </span>
+                                                    </td>
+                                                    <td class="has_ellipsis_before"> : 35394</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="has_ellipsis_after">
+                                                        <hr class="the_dotted_per_se"><span
+                                                            style="background:white;padding-right:4px;">
+
+                                                            Ordre dato
+
+
+                                                        </span>
+                                                    </td>
+                                                    <td class="has_ellipsis_before"> : 09.02.2024
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="has_ellipsis_after">
+                                                        <hr class="the_dotted_per_se"><span
+                                                            style="background:white;padding-right:4px;">
+
+                                                            Kundenr.
+
+                                                        </span>
+                                                    </td>
+                                                    <td class="has_ellipsis_before"> : 321654
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td class="has_ellipsis_after">
+                                                        <hr class="the_dotted_per_se"><span
+                                                            style="background:white;padding-right:4px;">
+
+                                                            Betalingsbetingelser
+
+                                                        </span>
+                                                    </td>
+                                                    <td class="has_ellipsis_before"> :
+                                                        Netto 14 dage
+                                                    </td>
+
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                    <td>&nbsp;</td>
+                                                </tr>
+
+
+
+                                                <!-- 
+                                                                
+                                                                -->
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width:63%"></td>
+                                    <td style="width:2%"></td>
+                                    <td style="width:35%;line-height:5px;">&nbsp;</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="container" id="lines">
+                            <thead>
+                                <tr>
+                                    <th style="width:10%;text-align:left;">
+                                        Nr.
+                                    </th>
+                                    <th style="width:40%;">
+                                        Tekst
+                                    </th>
+                                    <th style="width:5%; text-align:right;">
+                                        Antal
+                                    </th>
+                                    <th style="width:5%;">
+                                        Enhed
+                                    </th>
+                                    <th style="width:15%;text-align:right;">
+                                        Stk. pris
+                                    </th>
+                                    <th style="width:15%;text-align:right;">
+                                        Pris
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="6" style="line-height:5px;">&nbsp;</td>
+                                </tr>
+
+
+
+
+
+
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left;">#1411</td>
+                                    <td style="break-inside: auto;">
+                                        A's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche
+                                        ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's Porche ReservedeleA's
+                                        Porche ReservedeleA's Porche ReservedeleA's Porche Reservedele
+                                    </td>
+                                    <td style="text-align:right;">
+                                        3
+                                    </td>
+                                    <td>stk.</td>
+                                    <td style="text-align:right;">20.000,00</td>
+                                    <td style="text-align:right;">
+                                        60.000,00
+                                    </td>
+                                </tr>
+
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>
+                    <div class="footer-space">&nbsp;
+                        <!--  -->
+                    </div>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div id="sum_placement" style="margin-top: auto; margin-bottom: 0%;">
+        <div id="sum_lines">
+
+            <table class="container" style="border-top: 2px solid gray; break-inside: avoid;">
+                <tbody>
+                    <tr>
+                        <td style="width:70%;line-height:5px;">&nbsp;</td>
+                        <td style="width:30%;line-height:5px;">&nbsp;</td>
+                    </tr>
+                    <tr>
+                        <td style="width:70%;">
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td style="font-size: 10px;">(Momsfrit beløb: <b>0,00</b> - Momspligtigt
+                                            beløb: <b>60.000,00</b>)</td>
+
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 10px 10px 10px 10px;"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </td>
+                        <td style="width:30%">
+                            <table>
+                                <tbody>
+                                    <tr>
+
+                                        <td>
+                                            <table style="padding-right:5px;">
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="text-align:right;">Subtotal: </td>
+                                                        <td style="text-align:right;">
+                                                            60.000,00 </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <table style="padding-right:5px;">
+                                                <tbody>
+                                                    <tr>
+
+
+                                                        <td style="text-align:right;">25,00% moms:</td>
+                                                        <td style="text-align:right">
+                                                            15.000,00
+                                                        </td>
+
+
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr id="tot">
+                                        <td>
+                                            <table style="padding-right:5px;">
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="text-align:right;">Total DKK:
+                                                        </td>
+
+                                                        <td style="text-align:right">
+                                                            75.000,00
+                                                        </td>
+
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="border-bottom" style="line-height:5px;">&nbsp;</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+        </div>
+        <!-- end of file -->
+</body>
+
+</html>
