@@ -1,12 +1,34 @@
 const express = require('express');
+const http = require('http');
 const puppeteer = require('puppeteer')
 const app = express();
 const fs = require('fs');
+const { get } = require('http');
 const port = 3005;
 const pdfGenerators = []
+let browser = false
+let page = false
 
-app.get('/', function (request, response) {
-    response.sendFile(__dirname + '/index.html');
+
+/* const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+
+    console.log(req)
+    console.log(res)
+    res.
+    res.end(__dirname + '/index.html');
+})
+
+server.listen(port, () => {
+    console.log(`Server is running on port ${port}`)
+}) */
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`)
+});
+
+app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/index.html');
 });
 
 app.get("/pdf", (req, res) => {
@@ -15,10 +37,18 @@ app.get("/pdf", (req, res) => {
         res.contentType("application/pdf");
         res.send(pdf);
     })
-
 });
 
-setInterval(() => {
+function validatePDFRequest(req, res, next) {
+    if (!req.query.html) {
+        res.status(400).send("html query parameter is required")
+    } else {
+        next()
+    }
+
+}
+
+/* setInterval(() => {
     // check for unused pdfGenerators and close them
     const maxIdleTime = Date.now() - 1000 * 60 * 5
     const pdfGeneratorsToClose = pdfGenerators.filter((pdfGenerator) => {
@@ -26,40 +56,64 @@ setInterval(() => {
         pdfGenerator.isAvailable && timeSpentIdle > maxIdleTime
     })
 
-    pdfGeneratorsToClose.forEach(async (pdfGenerator) => {
-        await pdfGenerator.browser.close()
-        pdfGenerators.splice(pdfGenerators.indexOf(pdfGenerator), 1)
-    })
-
-    pdfGenerators.filter(pdfGenerator => pdfGenerator.isAvailable && Date.now() - pdfGenerator.lastUsed > 1000 * 60 * 5).forEach(async pdfGenerator => {
-        await pdfGenerator.browser.close()
-        pdfGenerators.splice(pdfGenerators.indexOf(pdfGenerator), 1)
+    pdfGeneratorsToClose.forEach((pdfGenerator) => {
+        pdfGenerator.browser.close().then(() => {
+            pdfGenerators.splice(pdfGenerators.indexOf(pdfGenerator), 1)
+        })
     })
 }, 1000 * 60)
-
+ */
 async function createPDFGenerator() {
-    const browser = await puppeteer.launch({ headless: "new" });
-    let page = await browser.newPage();
+    let isAvailable = true;
+    let lastUsed = Date.now();
+    if (!browser) {
+        browser = await puppeteer.launch({ headless: "new" })
+    }
+    if (!page) {
+        page = await browser.newPage();
+    }
+
+    function releaseForUse() {
+        isAvailable = true;
+    }
+
+    function use() {
+        if (!isAvailable) {
+            throw new Error('Resource is not available');
+        }
+        isAvailable = false;
+        lastUsed = Date.now();
+    }
+
+    function checkAvailability() {
+        return isAvailable;
+    }
+
+    function getLastUsed() {
+        return lastUsed;
+    }
+
     return {
         browser: browser,
         page: page,
         isAvailable: true,
-        lastUsed: Date.now(),
-        releaseForUse: async () => {
-            page = await browser.newPage()
-            this.isAvailable = true
-        }
+        lastUsed: getLastUsed,
+        releaseForUse: releaseForUse,
+        use: use,
+        checkAvailability: checkAvailability
     }
 }
 
 async function getAvailablePDFgenerator() {
-    let pdfGenerator = pdfGenerators.find(pg => pg.isAvailable)
-    if (!pdfGenerator) {
-        pdfGenerator = await createPDFGenerator()
+    if (pdfGenerators.length < 1) {
+        const pdfGenerator = await createPDFGenerator()
         pdfGenerators.push(pdfGenerator)
+    }
+    let pdfGenerator = pdfGenerators.find(pdfGenerator => pdfGenerator.checkAvailability())
+    if (!pdfGenerator) {
+        return Promise.reject("No available pdf generators")
     } else {
-        pdfGenerator.isAvailable = false
-        pdfGenerator.lastUsed = Date.now()
+        pdfGenerator.use()
     }
     return pdfGenerator
 }
@@ -67,9 +121,13 @@ async function getAvailablePDFgenerator() {
 async function createPDF(html) {
     let logo = fs.readFileSync("./john-logo.png", { encoding: 'base64' })
 
-    let { page, releaseForUse } = await getAvailablePDFgenerator();
-    await page.setContent(html, { waitUntil: 'domcontentloaded' })
-    const pdf = await page.pdf({
+    // try to get available pdf generator if none availabe try again after 1 second
+
+    let pdfGenerator = await getAvailablePDFgenerator().catch(() => {
+        return retry(getAvailablePDFgenerator, 1000)
+    })
+    await pdfGenerator.page.setContent(html, { waitUntil: 'domcontentloaded' })
+    const pdf = await pdfGenerator.page.pdf({
         format: "A4",
         printBackground: false,
         preferCSSPageSize: true,
@@ -86,7 +144,8 @@ async function createPDF(html) {
             left: "20px"
         },
     });
-    releaseForUse()
+
+    pdfGenerator.releaseForUse()
     return pdf
 }
 
@@ -153,8 +212,20 @@ function getFooterTemplate({
         </table>`;
 }
 
-console.log(`Server is running on port ${port}`);
-
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-})
+function retry(fn, ms = 1000, maxRetries = 5) {
+    new Promise((resolve, reject) => {
+        let retries = 0;
+        fn()
+            .then(resolve)
+            .catch(() => {
+                setTimeout(() => {
+                    console.log('retrying failed promise...');
+                    ++retries;
+                    if (retries == maxRetries) {
+                        return reject('maximum retries exceeded');
+                    }
+                    retry(fn, ms).then(resolve);
+                }, ms);
+            })
+    });
+}

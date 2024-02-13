@@ -100,11 +100,6 @@
             max-width: 800px;
         }
 
-        button#_print {
-            display: none !important;
-            visibility: hidden !important;
-        }
-
         @media only screen {
             html {
                 background: lightgray;
@@ -122,30 +117,6 @@
                 min-height: 297mm;
             }
 
-            button#_print {
-                position: absolute;
-                top: 4px;
-                right: 4px;
-                padding: 4px 15px;
-                background: #00d78c;
-                color: #233959;
-                font-family: MuseoSans, open_sans, helvetica, arial, sans-serif;
-                border: 0;
-                font-size: 12px;
-                line-height: 24px;
-                display: block !important;
-                visibility: visible !important;
-            }
-
-            .footer {
-                width: calc(210mm + ((12.5mm + 7px)*2)) !important;
-                left: 50%;
-                margin: 0;
-                margin-bottom: 7px;
-                padding: 0;
-                transform: translate(calc(-50% + 6px), 0);
-            }
-
             [contenteditable=true]:before {
                 font-family: "fontello";
                 color: #c6c6c4;
@@ -161,7 +132,10 @@
 
         .container {
             width: 100%;
-            font-size: 12px;
+        }
+
+        .container td {
+            font-size: 11px;
         }
 
         #no_space {
@@ -352,8 +326,6 @@
 
                                                 <tr>
                                                     <td>
-
-
                                                         Lev. dato: 23.02.2024
 
                                                     </td>
@@ -371,7 +343,7 @@
                                 <tr>
                                     <td style="width:63%" class="border-bottom"> </td>
                                     <td style="width:2%"> </td>
-                                    <td style="font-size:24px;width:35%" class="border-bottom">
+                                    <td style="font-size:20px;width:35%" class="border-bottom">
 
                                         <b>ORDREBEKRÆFTELSE</b>
 
@@ -398,7 +370,7 @@
                                     <td style="width:2%">
                                     </td>
                                     <td style="width:35%">
-                                        <table style="font-size:12px" class="right_with_dotted_lines">
+                                        <table style="font-size:11px" class="right_with_dotted_lines">
                                             <tbody>
                                                 <tr>
                                                     <td class="has_ellipsis_after" id="tot">
