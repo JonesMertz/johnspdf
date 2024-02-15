@@ -6,7 +6,7 @@ const app = express();
 app.use(bodyParser.text({ type: 'text/html' }))
 app.use(bodyParser.json())
 app.use(express.static(process.cwd()))
-const port = process.env.PDF_HANDLER_PORT || 5500;
+const port = process.env.PDF_HANDLER_PORT || 3005;
 const maxChildren = process.env.PDF_HANDLER_MAX_CHILDREN || 10;
 
 // Create child processes
