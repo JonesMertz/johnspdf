@@ -26,7 +26,7 @@
                     <option value="A3">A3</option>
                 </select><br>
                 <label for="landscape">Landscape:</label><br>
-                <input type="checkbox" id="landscape"><br>
+                <input type="checkbox" id="landscape" styl><br>
                 <label for="margin-top">Top Margin:</label><br>
                 <input type="text" id="margin-top"><br>
                 <label for="margin-bottom">Bottom Margin:</label><br>
@@ -88,7 +88,7 @@
 
         </script>
         <div class="card" id="documentation-card">
-            <h2>Documentation</h2>
+            <h2 id="documentation-card-toggle">Documentation</h2>
             <div class="content">
 
                 <p>
@@ -96,7 +96,7 @@
                 </p>
                 <h3>Usage</h3>
                 <p>
-                    The only required input is the main HTML. The header and footer are optional.
+                    The only required input is the main HTML
                 </p>
                 <div style="margin-left: 12px;">
 
@@ -106,7 +106,7 @@
                         </b>
                     </p>
                     <ul style="margin: 0px;">
-                        <li>Header: header html</li>
+                        <li>HTML: Body html</li>
                     </ul>
 
                     <p style="margin: 8px;">
@@ -115,7 +115,7 @@
                         </b>
                     </p>
                     <ul style="margin: 0px;">
-                        <li>HTML: Body html</li>
+                        <li>Header: header html</li>
                         <li>Footer: Footer html</li>
                         <li>Format: Most common paper formats</li>
                         <li>Landscape: true || false</li>
@@ -171,6 +171,9 @@
 
         </div>
     </div>
+    <footer>
+        <p>Copyright © Jonas Mertz 2024</p>
+    </footer>
 </body>
 
 </html>
@@ -184,7 +187,7 @@
         const title = document.querySelector('#documentation-card h2');
         title.classList.add('open');
     }
-    document.getElementById('documentation-card').addEventListener('click', toggleDocumentationCard);
+    document.getElementById('documentation-card-toggle').addEventListener('click', toggleDocumentationCard);
     function toggleDocumentationCard() {
         const content = document.querySelector('#documentation-card .content');
         const title = document.querySelector('#documentation-card h2');

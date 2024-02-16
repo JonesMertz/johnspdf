@@ -3,10 +3,19 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: start;
     height: 100vh;
     margin: 0;
     background-color: #f4f4f4;
+}
+
+footer {
+    margin-top: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    color: #333;
+    text-align: center;
+    width: 100%;
 }
 
 h1 {
@@ -102,6 +111,17 @@ input[type="submit"]:hover {
 #documentation-card .content.visible {
     opacity: 1;
     max-height: 1000px; /* Adjust this value as needed */
+}
+
+#documentation-card-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    margin-top: 0px;
+    margin-bottom: 10px;
 }
 
 #documentation-card h2::after {
