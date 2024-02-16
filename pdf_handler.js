@@ -82,18 +82,6 @@ app.post("/pdf", (req, res) => {
  * @returns {PDFData} The PDF data object.
  */
 function createPDFDataFromRequest(req) {
-    /**
-     * The PDF data object.
-     * @typedef {Object} PDFData
-     * @property {string} html - The HTML content of the PDF.
-     * @property {boolean} saveToFile - Indicates whether to save the PDF to a file.
-     * @property {Object} header - The header configuration of the PDF.
-     * @property {string} header.html - The HTML content of the header.
-     * @property {number} header.height - The height of the header.
-     * @property {Object} footer - The footer configuration of the PDF.
-     * @property {string} footer.html - The HTML content of the footer.
-     * @property {number} footer.height - The height of the footer.
-    */
 
     const html = req.body
     const pdfData = {
