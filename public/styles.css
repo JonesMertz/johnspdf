@@ -13,6 +13,11 @@ h1 {
     color: #333;
 }
 
+#logo {
+    width: 300px;
+    margin: 20px;
+}
+
 form {
     display: flex;
     justify-content: space-between;

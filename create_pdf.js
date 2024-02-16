@@ -40,7 +40,6 @@ process.on('message', async (pdfData) => {
  * @returns {Promise<Buffer>} - A promise that resolves to the generated PDF document.
  */
 async function createPDF(pdfData) {
-    let logo = fs.readFileSync("./john-logo.png", { encoding: 'base64' })
 
     // try to get available pdf generator if none availabe try again after 1 second
 
@@ -53,8 +52,8 @@ async function createPDF(pdfData) {
         preferCSSPageSize: true,
         displayHeaderFooter: true,
         landscape: pdfData?.landscape || false,
-        headerTemplate: pdfData?.header || getHeaderTemplate({ logo }), // `<span style="font-size: 12px; width: 100%; height: 100px; background-color: black; color: white; margin: 20px;"><img width="100" src="data:image/png;base64, ${logo}" alt="company_logo"></span>`,
-        footerTemplate: pdfData?.footer || getFooterTemplate({ logo }), //`<span style="font-size: 12px; width: 50px; height: 50px; background-color: red; color:black; margin: 20px;">Footer</span>`,
+        headerTemplate: pdfData?.header || getHeaderTemplate(), // `<span style="font-size: 12px; width: 100%; height: 100px; background-color: black; color: white; margin: 20px;"><img width="100" src="data:image/png;base64, ${logo}" alt="company_logo"></span>`,
+        footerTemplate: pdfData?.footer || getFooterTemplate(), //`<span style="font-size: 12px; width: 50px; height: 50px; background-color: red; color:black; margin: 20px;">Footer</span>`,
         //headerTemplate: `<div class="header">texsasras<img decoding="async" width="100" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%200'%3E%3C/svg%3E" alt="company_logo" data-lazy-src="data:image/png;base64, ${logo}"><noscript><img decoding="async" width="100" src="data:image/png;base64, ${logo}" alt="company_logo"></noscript></div> `,
         //footerTemplate: '<footer><h5>Page <span class="pageNumber"></span> of <span class="totalPages"></span></h5></footer>',
         margin: {
@@ -80,7 +79,7 @@ async function createPDF(pdfData) {
     return pdf
 }
 
-function getHeaderTemplate({ logo: logo }) {
+function getHeaderTemplate() {
     return ""
     return `<style>
         html {
@@ -108,9 +107,7 @@ function getHeaderTemplate({ logo: logo }) {
         </table>`;
 }
 
-function getFooterTemplate({
-    logo: logo
-}) {
+function getFooterTemplate() {
     return ""
     return `<style>
         html {
