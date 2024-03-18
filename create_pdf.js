@@ -5,6 +5,7 @@ import puppeteer from 'puppeteer';
 const getBrowser = await (async function () {
     let browser = await puppeteer.launch({ headless: "new" })
     browser.on('disconnected', () => {
+
         browser = puppeteer.launch({ headless: "new" })
     })
     return function () {
@@ -28,10 +29,14 @@ const getPage = await (async function () {
  */
 process.on('message', async (pdfData) => {
     // Create a pdf from the html
-
-    const pdf = await createPDF(pdfData)
+    try {
+        const pdf = await createPDF(pdfData)
+        process.send(pdf);
+    } catch (error) {
+        console.error(error)
+        process.exit(1)
+    }
     // Send a response back to the parent process
-    process.send(pdf);
 });
 
 /**
@@ -52,8 +57,8 @@ async function createPDF(pdfData) {
         preferCSSPageSize: true,
         displayHeaderFooter: true,
         landscape: pdfData?.landscape || false,
-        headerTemplate: pdfData?.header || getHeaderTemplate(), // `<span style="font-size: 12px; width: 100%; height: 100px; background-color: black; color: white; margin: 20px;"><img width="100" src="data:image/png;base64, ${logo}" alt="company_logo"></span>`,
-        footerTemplate: pdfData?.footer || getFooterTemplate(), //`<span style="font-size: 12px; width: 50px; height: 50px; background-color: red; color:black; margin: 20px;">Footer</span>`,
+        headerTemplate: getHeaderTemplate(pdfData?.header), // `<span style="font-size: 12px; width: 100%; height: 100px; background-color: black; color: white; margin: 20px;"><img width="100" src="data:image/png;base64, ${logo}" alt="company_logo"></span>`,
+        footerTemplate: getFooterTemplate(pdfData?.header), //`<span style="font-size: 12px; width: 50px; height: 50px; background-color: red; color:black; margin: 20px;">Footer</span>`,
         //headerTemplate: `<div class="header">texsasras<img decoding="async" width="100" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%200'%3E%3C/svg%3E" alt="company_logo" data-lazy-src="data:image/png;base64, ${logo}"><noscript><img decoding="async" width="100" src="data:image/png;base64, ${logo}" alt="company_logo"></noscript></div> `,
         //footerTemplate: '<footer><h5>Page <span class="pageNumber"></span> of <span class="totalPages"></span></h5></footer>',
         margin: {
@@ -79,8 +84,9 @@ async function createPDF(pdfData) {
     return pdf
 }
 
-function getHeaderTemplate() {
-    return ""
+function getHeaderTemplate(header) {
+    if (!header) header = ""
+    //return ""
     return `<style>
         html {
             -webkit-print-color-adjust: exact;
@@ -99,16 +105,12 @@ function getHeaderTemplate() {
         </style>
 
         <table class="header-table" style="width:100%;">
-        <tr>
-            <td style="text-align:right;">
-                <img src="data:image/png;base64, ${logo}" alt="company_logo"></span>
-            </td>
-        </tr>
+        ${header}
         </table>`;
 }
 
-function getFooterTemplate() {
-    return ""
+function getFooterTemplate(footer) {
+    if (!footer) footer = ""
     return `<style>
         html {
             -webkit-print-color-adjust: exact;
@@ -125,20 +127,7 @@ function getFooterTemplate() {
         </style>
 
         <table class="footer-table" style="width:100%;">
-        <tr>
-        <td>
-        <hr>
-            <p>
-                <b>TRACELINK TESTKONTO</b> - Danmark - CVR-nr.: 70261001<br>
-                Tlf.: 21457783
-
-                <br>
-                Bank: Danske Bank
-                – Kontonr. 0476 / 11111111 <br>
-                <span class="pageNumber"></span> af <span class="totalPages"></span>
-            </p>
-        </td>
-        </tr>
+        ${footer}
         </table>`;
 }
 

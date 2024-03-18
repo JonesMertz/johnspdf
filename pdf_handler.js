@@ -8,6 +8,12 @@ app.use(bodyParser.json())
 app.use(express.static(process.cwd()))
 const port = process.env.PDF_HANDLER_PORT || 3005;
 const maxChildren = process.env.PDF_HANDLER_MAX_CHILDREN || 10;
+const requestQueue = [];
+const pdfGeneratorPath = './create_pdf.js';
+
+function pushToQueue(res, pdfData) {
+    requestQueue.push({ res: res, pdfData: pdfData });
+}
 
 // Create child processes
 const children = Array.from({ length: 5 }, createPDFChildProcess);
@@ -25,33 +31,36 @@ app.get('/', function (req, res) {
 });
 
 app.get("/pdf", (req, res) => {
-    const child = findAvailableChildProcess();
-    if (!child) {
-        res.end("Service Unavailable");
+    const html = fs.readFileSync('./public/test.html', 'utf8');
+    const pdfData = {
+        html: html,
+        saveToFile: false
     }
 
-    const html = fs.readFileSync('./test.html', 'utf8');
+    const child = findAvailableChildProcess();
 
-    usePDFChildProcess(child, html)
-        .then((pdf) => {
-            const pdfBuffer = Buffer.from(pdf, "binary")
-            res.contentType("application/pdf");
-            res.appendHeader('Content-Disposition', 'inline; filename=invoice.pdf');
-            res.send(pdfBuffer);
-        })
-        .catch((error) => {
-            res.sendStatus(400).send(error.message)
-        });
+    if (!child) {
+        pushToQueue(res, pdfData);
+        return;
+    }
 
-
-
+    handlePDFRequest(res, pdfData, child);
 })
 
 app.post("/pdf", (req, res) => {
     validateRequest(req, res);
+    console.log("Request received")
+
+    const child = findAvailableChildProcess();
     const pdfData = createPDFDataFromRequest(req);
 
-    handlePDFRequest(res, pdfData);
+    if (!child) {
+        pushToQueue(res, pdfData);
+        return;
+    }
+
+
+    handlePDFRequest(res, pdfData, child);
 
     function validateRequest(req, res) {
         if (!req.body.html) {
@@ -60,11 +69,11 @@ app.post("/pdf", (req, res) => {
     }
 });
 
-/**
- * Creates PDF data from a request object.
- * @param {Object} req - The request object.
- * @returns {PDFData} - The PDF data.
- */
+function killChildProcess(child) {
+    child.kill();
+    children.splice(children.indexOf(child), 1);
+}
+
 /**
  * Creates a PDF data object from a request.
  * @param {Object} req - The request object.
@@ -83,7 +92,6 @@ app.post("/pdf", (req, res) => {
  */
 function createPDFDataFromRequest(req) {
 
-    const html = req.body
     const pdfData = {
         html: req.body.html,
         saveToFile: req.body.saveToFile === true ? true : false
@@ -120,28 +128,21 @@ function createPDFDataFromRequest(req) {
     return pdfData;
 }
 
-function handlePDFRequest(res, html, retries = 5) {
-    const child = findAvailableChildProcess();
+function handlePDFRequest(res, pdfData, child) {
+    if (!child) return
+    if (!pdfData) return
 
-    if (!child) {
-        if (retries > 0) {
-            // Wait for 1 second before retrying
-            setTimeout(() => handlePDFRequest(res, html, retries - 1), 1000);
-        } else {
-            res.end("Service Unavailable");
-        }
-        return;
-    }
-
-    usePDFChildProcess(child, html)
+    usePDFChildProcess(child, pdfData)
         .then((pdf) => {
             const pdfBuffer = Buffer.from(pdf, "binary")
             res.contentType("application/pdf");
-            res.appendHeader('Content-Disposition', 'inline; filename=invoice.pdf');
+            res.appendHeader('Content-Disposition', `inline; filename=johnspdf_dk_${Date.now()}.pdf`);
             res.send(pdfBuffer);
         })
         .catch((error) => {
-            res.sendStatus(400).send(error.message)
+            killChildProcess(child); // kill the child process if it fails
+            console.error(error)
+            res.status(400).send(error.message)
         });
 }
 
@@ -154,15 +155,20 @@ function findAvailableChildProcess() {
         child = createPDFChildProcess();
         children.push(child);
     }
-
+    if (child) {
+        child.isAvailable = false;
+    }
     return child;
 }
 
 // Function to use a child process
 function usePDFChildProcess(child, data) {
+    if (!child) return Promise.reject(new Error('No child process available'));
+
+    if (!data.html) return Promise.reject(new Error('No html provided'))
+
     return new Promise((resolve, reject) => {
         // Set the child as unavailable and update the last used timestamp
-        child.isAvailable = false;
         child.lastUsed = Date.now();
 
         // Send the data to the child
@@ -175,9 +181,10 @@ function usePDFChildProcess(child, data) {
 }
 
 function createPDFChildProcess() {
-    const child = fork('./create_pdf.js');
+    const child = fork(pdfGeneratorPath);
     child.isAvailable = false;
     child.lastUsed = Date.now();
+
 
     // Listen for the child to send a message back and resolve the promise with the response, and mark as available
     child.on('message', (pdf) => {
@@ -190,6 +197,7 @@ function createPDFChildProcess() {
     // Listen for the child to send an error back and reject the promise with the error, and mark as available
     child.on('error', (error) => {
         child.isAvailable = true;
+        console.log(error)
         if (child.onError) {
             child.onError(error);
         }
@@ -203,17 +211,50 @@ function terminateIdleChildrenProcesses() {
     const idleTime = 1000 * 60 * 5; // 5 minutes
     const now = Date.now();
 
-    if (children.length < 2) return; // we always want to have at least 2 children running to avoid downtime
-
     for (let i = children.length - 1; i >= 0; i--) {
+        if (children.length < 2) return; // we always want to have at least 2 children running to avoid downtime
+
         const child = children[i];
         if (child.isAvailable && now - child.lastUsed > idleTime) {
-            child.kill();
-            children.splice(i, 1);
+            const timestamp = new Date();
+            console.log(`${timestamp.toString()}: Terminating idle child process ${i} (${child.pid})`)
+            killChildProcess(child)
         }
     }
 }
 
+function processQueue() {
+    if (requestQueue.length == 0) return;
+
+    const child = findAvailableChildProcess();
+
+    if (!child) return;
+
+    // If a child process is available, process the next request in the queue
+    const { res, pdfData } = requestQueue.shift();
+
+    try {
+        handlePDFRequest(res, pdfData, child);
+    } catch (error) {
+        console.error('Error processing request:', error);
+        // Optionally, add the request back to the queue for retry
+        pushToQueue(res, pdfData);
+    };
+}
+
+function logStatus() {
+    const numChildren = children.length;
+    const numAvailableChildren = children.filter(child => child.isAvailable).length;
+    const numRequestsInQueue = requestQueue.length;
+    const timestamp = new Date();
+
+    console.log(`Status at ${timestamp}:`);
+    console.log(`- Number of child processes: ${numChildren}`);
+    console.log(`- Number of available child processes: ${numAvailableChildren}`);
+    console.log(`- Number of requests in queue: ${numRequestsInQueue}`);
+}
+
 // Set an interval to terminate idle child processes every minute
 setInterval(terminateIdleChildrenProcesses, 1000 * 60);
-
+setInterval(processQueue, 100);
+setInterval(logStatus, 5000);
