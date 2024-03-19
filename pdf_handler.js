@@ -51,7 +51,7 @@ app.get(apiPath, (req, res) => {
 
 app.post(apiPath, (req, res) => {
     validateRequest(req, res);
-    console.log("request received: ", new Date.now().toLocaleString("en-us"))
+    console.log("request received: ", new Date().toLocaleString('da-dk'))
 
     const child = findAvailableChildProcess();
     const pdfData = createPDFDataFromRequest(req);
