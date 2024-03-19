@@ -2,14 +2,20 @@ import bodyParser from "body-parser";
 import { fork } from 'child_process';
 import express from "express";
 import * as fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 app.use(bodyParser.text({ type: 'text/html' }))
 app.use(bodyParser.json())
-app.use(express.static(process.cwd()))
+app.use(express.static(__dirname))
 const port = process.env.PDF_HANDLER_PORT || 3005;
 const maxChildren = process.env.PDF_HANDLER_MAX_CHILDREN || 10;
+const minChildren = process.env.PDF_HANDLER_MIN_CHILDREN || 2;
+const apiPath = '/pdf';
 const requestQueue = [];
-const pdfGeneratorPath = './create_pdf.js';
+const pdfGeneratorPath = path.join(__dirname, '/create_pdf.js');
 
 function pushToQueue(res, pdfData) {
     requestQueue.push({ res: res, pdfData: pdfData });
@@ -26,12 +32,8 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`)
 });
 
-app.get('/', function (req, res) {
-    res.sendFile('/index.html');
-});
-
-app.get("/pdf", (req, res) => {
-    const html = fs.readFileSync('./public/test.html', 'utf8');
+app.get(apiPath, (req, res) => {
+    const html = fs.readFileSync('/test.html', 'utf8');
     const pdfData = {
         html: html,
         saveToFile: false
@@ -47,9 +49,9 @@ app.get("/pdf", (req, res) => {
     handlePDFRequest(res, pdfData, child);
 })
 
-app.post("/pdf", (req, res) => {
+app.post(apiPath, (req, res) => {
     validateRequest(req, res);
-    console.log("Request received")
+    console.log("request received", req)
 
     const child = findAvailableChildProcess();
     const pdfData = createPDFDataFromRequest(req);
@@ -197,7 +199,7 @@ function createPDFChildProcess() {
     // Listen for the child to send an error back and reject the promise with the error, and mark as available
     child.on('error', (error) => {
         child.isAvailable = true;
-        console.log(error)
+        console.error(error)
         if (child.onError) {
             child.onError(error);
         }
@@ -212,7 +214,7 @@ function terminateIdleChildrenProcesses() {
     const now = Date.now();
 
     for (let i = children.length - 1; i >= 0; i--) {
-        if (children.length < 2) return; // we always want to have at least 2 children running to avoid downtime
+        if (children.length <= minChildren) return; // we always want to have at least 2 children running to avoid downtime
 
         const child = children[i];
         if (child.isAvailable && now - child.lastUsed > idleTime) {
@@ -248,7 +250,7 @@ function logStatus() {
     const numRequestsInQueue = requestQueue.length;
     const timestamp = new Date();
 
-    console.log(`Status at ${timestamp}:`);
+    console.log(`Status: ${timestamp}:`);
     console.log(`- Number of child processes: ${numChildren}`);
     console.log(`- Number of available child processes: ${numAvailableChildren}`);
     console.log(`- Number of requests in queue: ${numRequestsInQueue}`);
@@ -257,4 +259,4 @@ function logStatus() {
 // Set an interval to terminate idle child processes every minute
 setInterval(terminateIdleChildrenProcesses, 1000 * 60);
 setInterval(processQueue, 100);
-setInterval(logStatus, 5000);
+setInterval(logStatus, 1000 * 30);

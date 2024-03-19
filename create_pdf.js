@@ -1,6 +1,10 @@
 import * as fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 
 const getBrowser = await (async function () {
     let browser = await puppeteer.launch({ headless: "new" })
@@ -71,7 +75,7 @@ async function createPDF(pdfData) {
 
     if (pdfData.saveToFile) {
         const fileName = (pdfData.fileName || Date.now().toString()) + ".pdf"
-        const pdf_path = path.resolve(process.cwd(), fileName)
+        const pdf_path = path.resolve(__dirname, fileName)
         try {
             fs.writeFile(pdf_path, pdf, (err) => {
                 if (err) throw err;
