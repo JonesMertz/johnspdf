@@ -34,10 +34,8 @@ app.listen(port, () => {
 
 app.get(apiPath, (req, res) => {
     const html = fs.readFileSync('/test.html', 'utf8');
-    const pdfData = {
-        html: html,
-        saveToFile: false
-    }
+    const pdfData = createPDFDataFromRequest(req);
+
 
     const child = findAvailableChildProcess();
 
@@ -51,7 +49,7 @@ app.get(apiPath, (req, res) => {
 
 app.post(apiPath, (req, res) => {
     validateRequest(req, res);
-    console.log("request received: ", new Date().toLocaleString('da-dk'))
+    console.log("request received:", new Date().toLocaleString('da-dk'))
 
     const child = findAvailableChildProcess();
     const pdfData = createPDFDataFromRequest(req);
