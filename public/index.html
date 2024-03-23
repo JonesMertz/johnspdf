@@ -4,150 +4,116 @@
 <head>
     <title>HTML to PDF Converter</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" data-name="vs/editor/editor.main"
+        href="../node_modules/monaco-editor/min/vs/editor/editor.main.css" />
+    <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+    <script src="./editor_init.js"></script>
 </head>
 
 <body>
-    <img id="logo" src="john-logo.png" />
-    <h2> PDF to HTML converter </h2>
-    <div class="flex-container">
-        <form id="converter-form">
-            <div class="textarea-group">
-                <label for="header-input">Header:</label><br>
-                <textarea id="header-input" rows="5" cols="50"></textarea><br>
-                <label for="html-input">Body:</label><br>
-                <textarea id="html-input" rows="10" cols="50"></textarea><br>
-                <label for="footer-input">Footer:</label><br>
-                <textarea id="footer-input" rows="5" cols="50"></textarea><br>
-            </div>
-            <div class="input-group">
-                <label for="format">Format:</label><br>
-                <select id="format">
-                    <option value="A4">A4</option>
-                    <option value="A3">A3</option>
-                </select><br>
-                <label for="landscape">Landscape:</label><br>
-                <input type="checkbox" id="landscape" styl><br>
-                <label for="margin-top">Top Margin:</label><br>
-                <input type="text" id="margin-top"><br>
-                <label for="margin-bottom">Bottom Margin:</label><br>
-                <input type="text" id="margin-bottom"><br>
-                <label for="margin-left">Left Margin:</label><br>
-                <input type="text" id="margin-left"><br>
-                <label for="margin-right">Right Margin:</label><br>
-                <input type="text" id="margin-right"><br>
-                <input type="submit" value="Convert to PDF">
-            </div>
-        </form>
-        <div id="result"></div>
-
-        <script>
-            document.getElementById('converter-form').addEventListener('submit', function (event) {
-                event.preventDefault();
-
-                let headerHtml = document.getElementById('header-input').value;
-                let mainHtml = document.getElementById('html-input').value;
-                let footerHtml = document.getElementById('footer-input').value;
-                let format = document.getElementById('format').value;
-                let landscape = document.getElementById('landscape').checked;
-                let marginTop = document.getElementById('margin-top').value;
-                let marginBottom = document.getElementById('margin-bottom').value;
-                let marginLeft = document.getElementById('margin-left').value;
-                let marginRight = document.getElementById('margin-right').value;
-
-                fetch('/pdf', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        header: headerHtml,
-                        html: mainHtml,
-                        footer: footerHtml,
-                        format: format,
-                        landscape: landscape,
-                        margin: {
-                            top: marginTop,
-                            bottom: marginBottom,
-                            left: marginLeft,
-                            right: marginRight
-                        }
-                    })
-                })
-                    .then(response => response.blob())
-                    .then(blob => {
-                        let url = window.URL.createObjectURL(blob);
-                        let a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'output';
-                        a.click();
-                    })
-                    .catch(error => {
-                        document.getElementById('result').textContent = 'Error: ' + error;
-                    });
-            });
-
-        </script>
-        <div class="card" id="documentation-card">
-            <h2 id="documentation-card-toggle">Documentation</h2>
-            <div class="content">
-
-                <p>
-                    This is a simple HTML to PDF converter. It takes HTML input and converts it to a PDF file.
-                </p>
-                <h3>Usage</h3>
-                <p>
-                    The only required input is the main HTML
-                </p>
-                <div style="margin-left: 12px;">
-
-                    <p style="margin: 8px;">
-                        <b>
-                            Required
-                        </b>
-                    </p>
-                    <ul style="margin: 0px;">
-                        <li>HTML: Body html</li>
-                    </ul>
-
-                    <p style="margin: 8px;">
-                        <b>
-                            Optional
-                        </b>
-                    </p>
-                    <ul style="margin: 0px;">
-                        <li>Header: header html</li>
-                        <li>Footer: Footer html</li>
-                        <li>Format: Most common paper formats</li>
-                        <li>Landscape: true || false</li>
-                        <li>Margin:
-                            <ul>
-                                <li>Top: any valid css length unit</li>
-                                <li>Bottom: any valid css length unit</li>
-                                <li>Left: any valid css length unit</li>
-                                <li>Right: any valid css length unit</li>
-                            </ul>
-                        </li>
-                    </ul>
+    <div class="banner">
+        <img id="logo" src="john-logo.png" />
+        <h1> PDF to HTML converter </h1>
+    </div>
+    <div class="main-content-container">
+        <div class="flex-container">
+            <form id="converter-form" class="form-container">
+                <div class="textarea-group">
+                    <label for="header-input">Header:</label><br>
+                    <div class="editor" id="header-editor"></div><br>
+                    <label for="html-input">Body:</label><br>
+                    <div class="editor" id="body-editor"></div><br>
+                    <label for="footer-input">Footer:</label><br>
+                    <div class="editor" id="footer-editor"></div><br>
                 </div>
-                <h3>Notes</h3>
-                <p>
-                    It is possible to get the page number and the total number of pages in the footer or header. <br>
-                    <li>
-                        Page number:<br><code>&lt;span class=&quot;pageNumber&quot;&gt;&lt;/span&gt;</code>
-                    </li>
-                    <br>
-                    <li>
-                        Total pages:<br> <code>&lt;span class=&quot;totalPages&quot;&gt;&lt;/span&gt;</code>
-                    </li>
-                </p>
+                <div class="input-group">
+                    <label for="format">Format:</label><br>
+                    <select id="format">
+                        <option value="A4">A4</option>
+                        <option value="A3">A3</option>
+                    </select><br>
+                    <label for="landscape">Landscape:</label><br>
+                    <input type="checkbox" id="landscape" styl><br>
+                    <label for="margin-top">Top Margin:</label><br>
+                    <input type="text" id="margin-top"><br>
+                    <label for="margin-bottom">Bottom Margin:</label><br>
+                    <input type="text" id="margin-bottom"><br>
+                    <label for="margin-left">Left Margin:</label><br>
+                    <input type="text" id="margin-left"><br>
+                    <label for="margin-right">Right Margin:</label><br>
+                    <input type="text" id="margin-right"><br>
+                    <input type="submit" value="Convert to PDF">
+                </div>
+            </form>
+            <div id="result"></div>
+
+            <script>
 
 
-                <h3> API </h3>
-                <p>
-                    it is also possible interact with the converter using the API. <br>
-                    The API endpoint is <code>https://johnspdf.dk/pdf</code>. <br>
-                    It accepts a POST request with the following JSON body:
-                <pre><code style="font-size: 0.8rem;">{
+            </script>
+            <div class="card" id="documentation-card">
+                <h2 id="documentation-card-toggle">Documentation</h2>
+                <div class="content">
+
+                    <p>
+                        This is a simple HTML to PDF converter. It takes HTML input and converts it to a PDF file.
+                    </p>
+                    <h3>Usage</h3>
+                    <p>
+                        The only required input is the main HTML
+                    </p>
+                    <div style="margin-left: 12px;">
+
+                        <p style="margin: 8px;">
+                            <b>
+                                Required
+                            </b>
+                        </p>
+                        <ul style="margin: 0px;">
+                            <li>HTML: Body html</li>
+                        </ul>
+
+                        <p style="margin: 8px;">
+                            <b>
+                                Optional
+                            </b>
+                        </p>
+                        <ul style="margin: 0px;">
+                            <li>Header: header html</li>
+                            <li>Footer: Footer html</li>
+                            <li>Format: Most common paper formats</li>
+                            <li>Landscape: true || false</li>
+                            <li>Margin:
+                                <ul>
+                                    <li>Top: any valid css length unit</li>
+                                    <li>Bottom: any valid css length unit</li>
+                                    <li>Left: any valid css length unit</li>
+                                    <li>Right: any valid css length unit</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <h3>Notes</h3>
+                    <p>
+                        It is possible to get the page number and the total number of pages in the footer or header.
+                        <br>
+                        <li>
+                            Page number:<br><code>&lt;span class=&quot;pageNumber&quot;&gt;&lt;/span&gt;</code>
+                        </li>
+                        <br>
+                        <li>
+                            Total pages:<br> <code>&lt;span class=&quot;totalPages&quot;&gt;&lt;/span&gt;</code>
+                        </li>
+                    </p>
+
+
+                    <h3> API </h3>
+                    <p>
+                        The API endpoint is: <br>
+                        <b><code>https://johnspdf.dk/pdf</code></b>
+                        <br>
+                        It accepts a POST request with the following JSON body:
+                    <pre><code style="font-size: 0.8rem;">{
     "header": "header html",
     "html": "body html",
     "footer": "footer html",
@@ -161,44 +127,24 @@
     }
 }
 </code></pre>
-                </p>
-                <p>
-                    If no errors occurs <br>
-                    The response will be a PDF file.
-                </p>
-                <ul></ul>
-            </div>
+                    </p>
+                    <p>
+                        If no errors occurs <br>
+                        The response will be a PDF file.
+                    </p>
+                    <ul></ul>
+                </div>
 
+            </div>
         </div>
+        <footer>
+            <p>Copyright &copy Jonas Mertz 2024</p>
+        </footer>
     </div>
-    <footer>
-        <p>Copyright &copy Jonas Mertz 2024</p>
-    </footer>
 </body>
 
+<script src="./script.js"></script>
+
+<script src="./pdf-form.js"></script>
+
 </html>
-
-<script>
-    let documentationCardIsVisible = localStorage.getItem('documentation-card-visible')
-    if (documentationCardIsVisible === 'true') {
-        const content = document.querySelector('#documentation-card .content');
-        content.classList.add('visible');
-
-        const title = document.querySelector('#documentation-card h2');
-        title.classList.add('open');
-    }
-    document.getElementById('documentation-card-toggle').addEventListener('click', toggleDocumentationCard);
-    function toggleDocumentationCard() {
-        const content = document.querySelector('#documentation-card .content');
-        const title = document.querySelector('#documentation-card h2');
-        if (content.classList.contains('visible')) {
-            content.classList.remove('visible');
-            title.classList.remove('open');
-            localStorage.setItem('documentation-card-visible', 'false');
-        } else {
-            content.classList.add('visible');
-            title.classList.add('open');
-            localStorage.setItem('documentation-card-visible', 'true');
-        }
-    }
-</script>

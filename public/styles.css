@@ -19,15 +19,39 @@ footer {
 }
 
 h1 {
-    color: #333;
+    color: #252525;
+}
+
+.flex-container {
+    width: 100%;
+}
+
+.banner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    
 }
 
 #logo {
     width: 300px;
-    margin: 20px;
+    margin: 10px;
 }
 
-form {
+
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 10px 0px;
+}
+
+.main-content-container {
+    width: calc(100% - 40px);
+}
+
+.form-container {
+    flex-grow: 1;
     display: flex;
     justify-content: space-between;
     background-color: #fff;
@@ -35,12 +59,6 @@ form {
     gap: 10px;
     border-radius: 5px;
     box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
-}
-
-.flex-container {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
 }
 
 .card {
@@ -75,9 +93,26 @@ form {
     flex-direction: column;
 }
 
+.textarea-group {
+    flex-grow: 1;
+}
+
+.input-group {
+    flex-grow: 0;
+}
+
 label {
     margin-bottom: 10px;
     font-weight: bold;
+}
+
+.editor {
+    max-width: 99%;
+    height: 300px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+
 }
 
 textarea, select, input[type="text"] {
