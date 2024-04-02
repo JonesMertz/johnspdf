@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let marginLeft = document.getElementById('margin-left').value;
         let marginRight = document.getElementById('margin-right').value;
 
-        fetch('/pdf:5500', {
+        fetch('/pdf', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
