@@ -23,6 +23,7 @@ logs/
 package-lock.json
 # Node.js
 node_modules/
+public/vs
 npm-debug.log
 yarn-error.log
 

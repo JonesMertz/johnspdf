@@ -10,7 +10,6 @@ app.use((req, res, next) => {
     if (req.url === '/') {
         const timeStamp = new Date();
         console.log(timeStamp.toLocaleString("uk"), "| GET ->", req.url);
-
     }
     next();
 });

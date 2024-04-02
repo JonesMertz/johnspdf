@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('converter-form').addEventListener('submit', function (event) {
         event.preventDefault();
-        debugger
 
         /* let headerHtml = document.getElementById('header-editor').value;
         let mainHtml = document.getElementById('body-editor').value;
