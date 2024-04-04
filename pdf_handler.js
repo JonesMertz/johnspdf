@@ -21,6 +21,10 @@ function pushToQueue(res, pdfData) {
     requestQueue.push({ res: res, pdfData: pdfData });
 }
 
+function getTimeStamp() {
+    return new Date().toLocaleString('da-dk');
+}
+
 // Create child processes
 const children = Array.from({ length: 5 }, createPDFChildProcess);
 
@@ -49,7 +53,7 @@ app.get(apiPath, (req, res) => {
 
 app.post(apiPath, (req, res) => {
     validateRequest(req, res);
-    console.log("request received:", new Date().toLocaleString('da-dk'))
+    console.log("request received:", getTimeStamp())
 
     const child = findAvailableChildProcess();
     const pdfData = createPDFDataFromRequest(req);
@@ -72,6 +76,7 @@ app.post(apiPath, (req, res) => {
 function killChildProcess(child) {
     child.kill();
     children.splice(children.indexOf(child), 1);
+    console.log(`${getTimeStamp()} | Child process ${child.pid} terminated`);
 }
 
 /**
@@ -187,7 +192,13 @@ function createPDFChildProcess() {
 
 
     // Listen for the child to send a message back and resolve the promise with the response, and mark as available
-    child.on('message', (pdf) => {
+    child.on('message', ({ pdf, error }) => {
+        if (error) {
+            const onError = child.onError
+            killChildProcess(child)
+            onError(new Error(error));
+            return;
+        }
         child.isAvailable = true;
         if (child.onResponse) {
             child.onResponse(pdf);
@@ -196,10 +207,11 @@ function createPDFChildProcess() {
 
     // Listen for the child to send an error back and reject the promise with the error, and mark as available
     child.on('error', (error) => {
-        child.isAvailable = true;
         console.error(error)
         if (child.onError) {
-            child.onError(error);
+            const onError = child.onError
+            killChildProcess(child)
+            onError(new Error(error));
         }
     });
 
@@ -211,9 +223,8 @@ function terminateIdleChildrenProcesses() {
     const idleTime = 1000 * 60 * 5; // 5 minutes
     const now = Date.now();
 
+    if (children.length <= minChildren) return; // we always want to have at least 2 children running to avoid downtime
     for (let i = children.length - 1; i >= 0; i--) {
-        if (children.length <= minChildren) return; // we always want to have at least 2 children running to avoid downtime
-
         const child = children[i];
         if (child.isAvailable && now - child.lastUsed > idleTime) {
             const timestamp = new Date();

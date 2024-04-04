@@ -25,22 +25,35 @@ const getPage = await (async function () {
     }
 })();
 
+
+
+/**
+ * @typedef {Object} processMessage
+ * @property {BUFFER} pdf - The PDF buffer object containing the data for the PDF.
+ * @property {Object} error - The error object.
+ */
+
 /**
  * Creates a PDF using the provided PDFData object.
- *
  * @param {PDFData} pdfData - The PDFData object containing the data for the PDF.
- * @returns {Buffer} A buffer containing the PDF.
+ * @returns {processMessage} possibly with error and a buffer containing the PDF.
  */
 process.on('message', async (pdfData) => {
     // Create a pdf from the html
     try {
         const pdf = await createPDF(pdfData)
-        process.send(pdf);
+        process.send({
+            error: undefined,
+            pdf: pdf
+        });
     } catch (error) {
+        process.send({
+            error: error,
+            pdf: undefined
+        })
         console.error(error)
         process.exit(1)
     }
-    // Send a response back to the parent process
 });
 
 /**
